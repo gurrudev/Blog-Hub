@@ -30,6 +30,12 @@
     src: url(./assets/fonts/Galins.otf);
 }
 
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+    }
+}
+
 :root {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
@@ -200,4 +206,4 @@ pre {
 
 .edit-quill .ql-editor {
     min-height: 120px;
-}
+}
