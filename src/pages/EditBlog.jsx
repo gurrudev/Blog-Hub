@@ -2,11 +2,11 @@
 import { useState, useRef, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { FaImage } from "react-icons/fa6";
-import { FaHashtag, FaArrowLeft } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { FaImage, FaArrowLeft } from "react-icons/fa6";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { createBlog } from "../redux/features/blogSlice";
+import { updateBlog } from "../redux/features/blogSlice";
+import getBlogById from "../utils/getBlogById";
 import endpointForUser from "../utils/endpointForUser";
 import toast, { Toaster } from "react-hot-toast";
 import { Helmet } from "react-helmet";
@@ -17,23 +17,31 @@ const inputCls =
 const labelCls =
     "block mb-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500";
 
-export const WriteBlog = () => {
-    const [blogData, setBlogData] = useState({});
-    const [user, setUserData] = useState({});
-    const [editorValue, setEditorValue] = useState("");
-    const dispatch = useDispatch();
+const allTags = [
+    "Adventure",
+    "Action",
+    "Travel",
+    "Landmark",
+    "Programming",
+    "Tutorial",
+    "Blog",
+];
+const maxTags = 2;
+
+const EditBlog = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
-    const allTags = [
-        "Adventure",
-        "Action",
-        "Travel",
-        "Landmark",
-        "Programming",
-        "Tutorial",
-        "Blog",
-    ];
+    const dispatch = useDispatch();
+    const token = sessionStorage.getItem("token");
+
+    const [user, setUser] = useState({});
+    const [post, setPost] = useState(null);
+    const [blogData, setBlogData] = useState({});
+    const [editorValue, setEditorValue] = useState("");
     const [selectedTags, setSelectedTags] = useState([]);
-    const maxTags = 2;
+    const [isLoading, setIsLoading] = useState(true);
+
+    const codeRef = useRef(null);
 
     const editorModules = {
         toolbar: [
@@ -42,8 +50,6 @@ export const WriteBlog = () => {
             [{ list: "ordered" }, { indent: "+1" }],
         ],
     };
-
-    const codeRef = useRef(null);
 
     function highlightKeywords(container) {
         const keywords = Object.keys(keywordStyles);
@@ -66,70 +72,89 @@ export const WriteBlog = () => {
         if (codeRef.current) highlightKeywords(codeRef.current);
     }, [editorValue]);
 
-    const token = sessionStorage.getItem("token");
-
-    // Guard: redirect immediately if no session
+    // Auth guard
     useEffect(() => {
         if (!token) {
             navigate("/");
             return;
         }
-        const fetchUser = async () => {
-            try {
-                const userData = await endpointForUser(token);
-                setUserData(userData.user);
-            } catch (e) {
-                console.error(e);
-            }
-        };
-        fetchUser();
+        endpointForUser(token)
+            .then((d) => setUser(d.user))
+            .catch(console.error);
     }, []);
 
-    const getBlogData = (e) =>
+    // Load the blog to edit
+    useEffect(() => {
+        if (!id) return;
+        getBlogById(id)
+            .then((res) => {
+                const blog = res.blog;
+                setPost(blog);
+                setBlogData({ title: blog.title, image_url: blog.image_url });
+                setEditorValue(blog.description || "");
+                setSelectedTags(blog.blog_tags || []);
+                setIsLoading(false);
+            })
+            .catch(console.error);
+    }, [id]);
+
+    const getBlogDataField = (e) =>
         setBlogData({ ...blogData, [e.target.name]: e.target.value });
 
-    const data = {
-        title: blogData.title,
-        description: editorValue,
-        image_url: blogData.image_url,
-        blog_tags: selectedTags,
-        user: user._id,
-        username: user.name,
-    };
-
-    const handleBlogSubmit = async () => {
-        try {
-            const response = await dispatch(createBlog(data));
-            if (response.meta.requestStatus === "fulfilled") {
-                toast.success("Blog published! 🎉");
-                setTimeout(() => navigate("/"), 1800);
-            } else {
-                toast.error("Something went wrong, try again.");
-            }
-        } catch (error) {
-            console.log(error);
+    const handleSelectTag = (tag) => {
+        if (selectedTags.includes(tag)) {
+            setSelectedTags(selectedTags.filter((t) => t !== tag));
+        } else if (selectedTags.length < maxTags) {
+            setSelectedTags([...selectedTags, tag]);
         }
     };
 
-    const handleSelectTag = (tag) => {
-        if (selectedTags.length < maxTags && !selectedTags.includes(tag))
-            setSelectedTags([...selectedTags, tag]);
+    const handleSubmit = async () => {
+        try {
+            const data = {
+                title: blogData.title || post.title,
+                description: editorValue,
+                image_url: blogData.image_url || post.image_url,
+                blog_tags: selectedTags,
+                user: post.user,
+                username: post.username,
+            };
+            const response = await dispatch(updateBlog({ id, data }));
+            if (response.meta.requestStatus === "fulfilled") {
+                toast.success("Blog updated!");
+                setTimeout(() => navigate("/profile"), 1600);
+            } else {
+                toast.error("Update failed, please try again.");
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    const handleRemoveTag = (tagToRemove) =>
-        setSelectedTags(selectedTags.filter((t) => t !== tagToRemove));
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+                <div
+                    className="text-slate-400 text-sm"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                >
+                    Loading post…
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
             <Helmet>
-                <title>Create Post | Blogiefy</title>
+                <title>Edit Post | Blogiefy</title>
             </Helmet>
             <Toaster position="top-center" reverseOrder={false} />
 
             {/* Top bar */}
             <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 h-14 bg-white border-b border-slate-200">
                 <button
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate("/profile")}
                     className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors"
                     style={{ fontFamily: "Inter, sans-serif" }}
                 >
@@ -144,12 +169,11 @@ export const WriteBlog = () => {
                 </Link>
                 <div className="flex items-center gap-3">
                     <button
-                        type="submit"
-                        onClick={handleBlogSubmit}
+                        onClick={handleSubmit}
                         className="bg-slate-900 hover:bg-slate-700 text-white text-sm font-bold px-5 py-1.5 rounded-md transition-colors"
                         style={{ fontFamily: "Inter, sans-serif" }}
                     >
-                        Publish
+                        Save Changes
                     </button>
                     {user.profile_pic && (
                         <Link to="/profile">
@@ -166,21 +190,27 @@ export const WriteBlog = () => {
             {/* Main content */}
             <main className="pt-14 min-h-screen bg-[#f8fafc]">
                 <div className="max-w-3xl mx-auto px-6 py-10">
+                    {/* Editing label */}
+                    <p
+                        className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3"
+                        style={{ fontFamily: "Inter, sans-serif" }}
+                    >
+                        ✎ Editing Post
+                    </p>
+
                     {/* Title */}
                     <div className="mb-6">
                         <input
                             type="text"
-                            id="title"
                             name="title"
-                            onChange={getBlogData}
+                            defaultValue={post?.title}
+                            onChange={getBlogDataField}
                             className="w-full bg-transparent text-slate-900 text-3xl font-extrabold outline-none placeholder-slate-300 border-none"
                             placeholder="Post title..."
                             style={{
                                 fontFamily: "Inter, sans-serif",
                                 letterSpacing: "-0.5px",
                             }}
-                            required
-                            autoFocus
                         />
                     </div>
 
@@ -194,13 +224,24 @@ export const WriteBlog = () => {
                                 </span>
                                 <input
                                     type="text"
-                                    id="image_url"
                                     name="image_url"
-                                    onChange={getBlogData}
+                                    defaultValue={post?.image_url}
+                                    onChange={getBlogDataField}
                                     className="flex-1 bg-white border border-slate-200 rounded-r-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-slate-700 transition-all"
                                     placeholder="https://your-image-link.com/photo.jpg"
                                 />
                             </div>
+                            {/* Image preview */}
+                            {(blogData.image_url || post?.image_url) && (
+                                <img
+                                    src={blogData.image_url || post?.image_url}
+                                    alt="Cover preview"
+                                    className="mt-3 w-full h-48 object-cover rounded-lg border border-slate-200"
+                                    onError={(e) =>
+                                        (e.target.style.display = "none")
+                                    }
+                                />
+                            )}
                         </div>
 
                         {/* Tags */}
@@ -213,11 +254,7 @@ export const WriteBlog = () => {
                                     <button
                                         key={i}
                                         type="button"
-                                        onClick={() =>
-                                            selectedTags.includes(tag)
-                                                ? handleRemoveTag(tag)
-                                                : handleSelectTag(tag)
-                                        }
+                                        onClick={() => handleSelectTag(tag)}
                                         className={`text-xs font-bold px-3 py-1 rounded-full border transition-all ${
                                             selectedTags.includes(tag)
                                                 ? "bg-slate-900 text-white border-slate-900"
@@ -249,7 +286,7 @@ export const WriteBlog = () => {
                                 className="text-xs font-semibold uppercase tracking-widest text-slate-400"
                                 style={{ fontFamily: "Inter, sans-serif" }}
                             >
-                                Your Story
+                                Content
                             </p>
                         </div>
                         <div style={{ minHeight: "350px" }}>
@@ -288,14 +325,21 @@ export const WriteBlog = () => {
                         </div>
                     )}
 
-                    {/* Bottom publish */}
-                    <div className="flex justify-end">
+                    {/* Bottom save */}
+                    <div className="flex justify-end gap-3">
                         <button
-                            onClick={handleBlogSubmit}
-                            className="bg-slate-900 hover:bg-slate-700 text-white text-sm font-bold px-8 py-3 rounded-lg transition-colors"
+                            onClick={() => navigate("/profile")}
+                            className="text-sm font-semibold text-slate-600 px-5 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition"
                             style={{ fontFamily: "Inter, sans-serif" }}
                         >
-                            Publish Post
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            className="bg-slate-900 hover:bg-slate-700 text-white text-sm font-bold px-8 py-2.5 rounded-lg transition-colors"
+                            style={{ fontFamily: "Inter, sans-serif" }}
+                        >
+                            Save Changes
                         </button>
                     </div>
                 </div>
@@ -303,3 +347,5 @@ export const WriteBlog = () => {
         </>
     );
 };
+
+export default EditBlog;

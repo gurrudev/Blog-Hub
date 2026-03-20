@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
 @tailwind base;
@@ -26,6 +29,42 @@
     font-family: Galins;
     src: url(./assets/fonts/Galins.otf);
 }
+
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --accent: #f59e0b;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.14);
+    --radius: 14px;
+    --radius-sm: 8px;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', customeRegular, sans-serif;
+    color: var(--text);
+    background: var(--surface);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Global link animation */
+a { transition: color 0.2s ease, opacity 0.2s ease; }
 
 
 /* For Quill text editor */
@@ -135,3 +174,30 @@ pre {
     /* Purple for keywords */
     font-weight: bold;
 }
+
+/* ── Quill editor overrides for WriteBlog & EditProfile ── */
+.write-quill .ql-container,
+.edit-quill .ql-container {
+    border: none !important;
+    font-family: 'Inter', customeRegular, sans-serif;
+    font-size: 0.95rem;
+    color: #374151;
+    line-height: 1.8;
+}
+
+.write-quill .ql-toolbar,
+.edit-quill .ql-toolbar {
+    border: none !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    background: #fafbfc;
+}
+
+.write-quill .ql-editor,
+.edit-quill .ql-editor {
+    min-height: 300px;
+    padding: 1.25rem 1.5rem;
+}
+
+.edit-quill .ql-editor {
+    min-height: 120px;
+}

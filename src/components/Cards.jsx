@@ -7,10 +7,9 @@ import truncate from '../utils/Truncate';
 import cardDate from '../utils/cardDate';
 import strippedString from '../utils/strippedString';
 import { BsThreeDots } from 'react-icons/bs';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaArrowRight } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import { Link } from 'react-router-dom';
-import { CiImageOn } from "react-icons/ci";
 
 function Cards({ cardsData, totalCards, isProfile, isLoading, deleteBlogData }) {
 
@@ -23,10 +22,17 @@ function Cards({ cardsData, totalCards, isProfile, isLoading, deleteBlogData }) 
         }));
     };
 
+    const getInitials = (name = '') => {
+        const parts = name.trim().split(' ');
+        return parts.length >= 2
+            ? (parts[0][0] + parts[1][0]).toUpperCase()
+            : (parts[0]?.[0] || '?').toUpperCase();
+    };
+
     return (
         <>
-            <div className='animate-pluse' >
-                <div className="card-container p-8 sm:p-20 sm:pt-10">
+            <div id="blog-cards">
+                <div className="card-container">
                     {isLoading ? (
                         Array(totalCards)
                             .fill(0)
@@ -36,76 +42,66 @@ function Cards({ cardsData, totalCards, isProfile, isLoading, deleteBlogData }) 
                             ?.filter((_, index) => index < totalCards)
                             ?.map((item, index) => (
                                 <div className="card" key={index}>
-                                    <div className="relative">
-                                        <img
-                                            src={item.image_url}
-                                            className="w-full h-[210px]"
-                                            alt=""
-                                        />
-                                        <div className="absolute inset-0 flex justify-between p-4 text-white text-lg">
-                                            <div className="flex gap-1.5 items-start">
-                                                {item.blog_tags &&
-                                                    item.blog_tags.map((tag, tagIndex) => (
-                                                        <div
-                                                            key={tagIndex}
-                                                            className="bg-black bg-opacity-20 backdrop-blur-2xl rounded-sm p-1"
-                                                        >
-                                                            <p className="pl-2 pr-2 text-xs form-text drop-shadow-2xl text-white">
-                                                                {tag}
-                                                            </p>
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                            <div className="flex items-start">
-                                                <div className="bg-black bg-opacity-20 backdrop-blur-2xl rounded-full p-2 shadow-lg">
-                                                    <p className="text-base">
-                                                        <CiImageOn />
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    {/* Image */}
+                                    <div className="card-img-wrap">
+                                        <img src={item.image_url} alt={item.title} />
                                     </div>
 
-                                    <h2 className="uppercase">{item.title}</h2>
-                                    <div className="user-details text-slate-700">
-                                        <p className="text-[15px]"> by {item.username}</p>
-                                        <p className="text-[15px]">
-                                            {cardDate(item.createdAt)}
-                                        </p>
-                                    </div>
-                                    <p className="des text-justify">
-                                        {truncate(strippedString(item.description))}
-                                    </p>
-                                    <div className="flex justify-between">
-                                        <div className="flex flex-col">
-                                            <Link to={`/post/${item._id}`}>View Post</Link> <span className='underline'></span>
-                                        </div>
-                                        {isProfile === true && (
-                                            <div className="relative inline-block text-left">
-                                                <div>
-                                                    <button
-                                                        onClick={() => toggleMenu(index)}
-                                                        className="flex items-center focus:outline-none"
-                                                    >
-                                                        <BsThreeDots className="text-2xl" />
-                                                    </button>
-                                                </div>
-                                                {isOpen[index] && (
-                                                    <div className="absolute z-10 right-0 bottom-4 mb-5 w-36 bg-white border border-gray-200 rounded-lg shadow-lg">
-                                                        <div className="py-1 form-text ">
-                                                            <span className="flex items-center cursor-pointer px-4 py-2 text-gray-800 hover:bg-gray-100">
-                                                                <FaEdit className="text-xl mr-2" />
-                                                                Edit
-                                                            </span>
-                                                            <span onClick={()=>deleteBlogData(item._id)} className="flex items-center cursor-pointer px-4 py-2 text-gray-800 hover:bg-gray-100">
-                                                                <MdDeleteForever className="text-xl mr-2" />
-                                                                Delete
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                    {/* Body */}
+                                    <div className="card-body">
+                                        {/* Tags */}
+                                        {item.blog_tags?.length > 0 && (
+                                            <div className="card-tags">
+                                                {item.blog_tags.map((tag, tagIndex) => (
+                                                    <span key={tagIndex} className="card-tag">{tag}</span>
+                                                ))}
                                             </div>
                                         )}
+
+                                        <h2>{item.title}</h2>
+
+                                        <div className="user-details">
+                                            <div className="card-author">
+                                                <div className="card-author-initials">
+                                                    {getInitials(item.username)}
+                                                </div>
+                                                <span className="card-author-name">{item.username}</span>
+                                            </div>
+                                            <span className="card-date">{cardDate(item.createdAt)}</span>
+                                        </div>
+
+                                        <p className="des">
+                                            {truncate(strippedString(item.description))}
+                                        </p>
+
+                                        <div className="flex justify-between items-end mt-auto pt-2">
+                                            <Link to={`/post/${item._id}`} className="card-read-more">
+                                                Read More <FaArrowRight size={9} />
+                                            </Link>
+
+                                            {isProfile === true && (
+                                                <div className="relative inline-block text-left">
+                                                    <button
+                                                        onClick={() => toggleMenu(index)}
+                                                        className="flex items-center focus:outline-none p-1 rounded hover:bg-gray-100 transition"
+                                                    >
+                                                        <BsThreeDots className="text-xl text-gray-400" />
+                                                    </button>
+                                                    {isOpen[index] && (
+                                                        <div className="absolute z-10 right-0 bottom-8 w-36 bg-white border border-gray-200 rounded-lg shadow-lg">
+                                                            <div className="py-1">
+                                                                <Link to={`/edit-post/${item._id}`} className="flex items-center cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-50 text-sm gap-2" style={{ textDecoration: 'none' }}>
+                                                                    <FaEdit className="text-gray-500" /> Edit
+                                                                </Link>
+                                                                <span onClick={() => deleteBlogData(item._id)} className="flex items-center cursor-pointer px-4 py-2 text-red-600 hover:bg-red-50 text-sm gap-2">
+                                                                    <MdDeleteForever className="text-red-500 text-base" /> Delete
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))

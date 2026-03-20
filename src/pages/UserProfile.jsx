@@ -1,218 +1,344 @@
-import { useState, useEffect } from 'react'
-// import _avatar from '../assets/img/img_avatar.png'
-import { FaArrowLeft } from "react-icons/fa6";
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { FaArrowLeft, FaLocationDot } from "react-icons/fa6";
+import { Link, useNavigate } from "react-router-dom";
 import { MdDateRange } from "react-icons/md";
-import { FaLocationDot } from "react-icons/fa6";
-import Cards from '../components/Cards';
-import { getBlogsData } from '../../api/apiCalls'
-import { useDispatch } from 'react-redux';
-import joinedDate from '../utils/joinedDate'
-import endpointForUser from '../utils/endpointForUser';
-import { BsThreeDots } from "react-icons/bs";
-import { FaUserEdit } from "react-icons/fa";
-import profileCoverImage from '../assets/img/profileCover.jpg'
+import Cards from "../components/Cards";
+import { getBlogsData } from "../../api/apiCalls";
+import { useDispatch } from "react-redux";
+import joinedDate from "../utils/joinedDate";
+import endpointForUser from "../utils/endpointForUser";
+import { FaUserEdit, FaPencilAlt } from "react-icons/fa";
+import { IoLogOut, IoCreate } from "react-icons/io5";
 import { RiLockPasswordFill } from "react-icons/ri";
-import { IoLogOut } from "react-icons/io5";
-import { logout } from '../redux/features/userSlice';
-import { IoCreate } from "react-icons/io5";
-import RandomColor from '../utils/RandomColor';
-import UserProfileSkeleton from '../components/Skeleton/UserProfileSkeleton';
-import { Helmet } from 'react-helmet';
-import { deleteBlog } from '../redux/features/blogSlice';
+import profileCoverImage from "../assets/img/profileCover.jpg";
+import { logout } from "../redux/features/userSlice";
+import RandomColor from "../utils/RandomColor";
+import UserProfileSkeleton from "../components/Skeleton/UserProfileSkeleton";
+import { Helmet } from "react-helmet";
+import { deleteBlog } from "../redux/features/blogSlice";
 
 function UserProfile() {
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+    const [user, setUserData] = useState({});
+    const [cardData, setCardData] = useState([]);
+    const [fetchBlog, setFetchBlog] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const token = sessionStorage.getItem("token");
+    const dispatch = useDispatch();
 
-  const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(true)
-  const [user, setUserData] = useState({})
-  const [cardData, setCardData] = useState([])
-  const token = sessionStorage.getItem('token')
-  const dispatch = useDispatch()
+    const userBlogs = cardData.filter((data) => data.user === user?._id);
 
-  const [fetchBlog, setFetchBlog] = useState(false)
+    if (user === undefined || user.message === "Invalid token") navigate("/");
 
-  // console.log(cardData)
+    const getUserData = async () => {
+        if (!token) {
+            navigate("/");
+            return;
+        }
+        try {
+            const userData = await endpointForUser(token);
+            setUserData(userData?.user);
+            if (userData?.user) setIsLoading(false);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
-  const userBlogs = cardData.filter(data => data.user === user?._id)
+    const BlogCardData = async () => {
+        const data = await getBlogsData();
+        setCardData(data?.blogs_data);
+    };
 
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate("/");
+    };
 
-  if (user === undefined || user.message === 'Invalid token') {
-    navigate('/')
-  }
+    const getColorClass = (index) => RandomColor[index % RandomColor.length];
 
-  const getUserData = async () => {
-    try {
-      const userData = await endpointForUser(token);
-      setUserData(userData?.user)
-      if (userData?.user) return setIsLoading(false)
-    } catch (error) {
-      // Handle errors
-      console.error(error);
-    }
-  };
+    const handleDeleteBlog = async (id) => {
+        if (window.confirm("Delete this blog?"))
+            try {
+                await dispatch(deleteBlog(id));
+                setFetchBlog((prev) => !prev);
+            } catch (error) {
+                console.log(error.message);
+            }
+    };
 
-  const BlogCardData = async () => {
-    const data = await getBlogsData()
-    setCardData(data?.blogs_data)
-  }
+    useEffect(() => {
+        BlogCardData();
+    }, [fetchBlog]);
+    useEffect(() => {
+        getUserData();
+    }, []);
 
-  // console.log(user)
+    const initials = user?.name
+        ? user.name
+              .trim()
+              .split(" ")
+              .map((p) => p[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()
+        : "?";
 
-  const [isOpen, setIsOpen] = useState(false);
+    return (
+        <>
+            <Helmet>
+                <title>
+                    {user?.name
+                        ? `${user.name} | Blogiefy`
+                        : "Profile | Blogiefy"}
+                </title>
+            </Helmet>
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleLogout = () => {
-    // Dispatch the logout action
-    dispatch(logout());
-    navigate("/");
-  };
-
-  const getColorClass = (index) => {
-    return RandomColor[index % RandomColor.length];
-  };
-
-  const handleDeleteBlog = async (id) => {
-    if (window.confirm('Are you sure you want to delete this blog?'))
-      try {
-        const response = await dispatch(deleteBlog(id))
-        // console.log(response)
-
-        setFetchBlog(prev => !prev)
-      } catch (error) {
-        console.log(error.message)
-      }
-  }
-
-  useEffect(() => {
-    BlogCardData()
-  }, [fetchBlog])
-
-  useEffect(() => {
-    getUserData()
-  }, [])
-
-  return (
-    <>
-      <Helmet>
-        <title>{!user ? "Profile | BlogHub" : `${user?.name} | BlogHub`}</title>
-      </Helmet>
-      {isLoading ? <UserProfileSkeleton />
-        : <div className="bg-gray-100">
-          <div className="relative">
-            <img
-              src={profileCoverImage}
-              alt="Cover"
-              className="w-full h-40 md:h-64 object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-black opacity-40"></div>
-            <div className="absolute top-0  py-6 px-6">
-              <FaArrowLeft className='form-text text-2xl text-white cursor-pointer' onClick={() => navigate('/')} />
-
-            </div>
-
-            <div className="absolute bottom-0 left-20 lg:left-34 md:left-36 transform -translate-x-1/2 translate-y-1/3 bg-white p-1 rounded-full">
-              <img
-                src={user.profile_pic}
-                alt=""
-                className="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover"
-              />
-            </div>
-          </div>
-
-
-          <div className="container mx-auto px-6 py-8 md:flex">
-
-            {/* Left Section - User Details */}
-            <div className="md:w-1/2">
-              <div className="flex items-center">
-
-                {/* User Info */}
-                <div className="ml-2 lg:ml-14 md:ml-8 mt-2 lg:mt-4 md:mt-4">
-                  <div className='flex justify-between gap-5'>
-                    <h1 className="text-3xl form-heading font-bold text-gray-800">{user.name}</h1>
-                    <div className="relative inline-block text-left">
-                      <div>
-                        <button onClick={toggleMenu} className="flex items-center focus:outline-none">
-                          <BsThreeDots className='text-2xl' />
+            {isLoading ? (
+                <UserProfileSkeleton />
+            ) : (
+                <div className="min-h-screen bg-[#f8fafc]">
+                    {/* Cover */}
+                    <div className="relative h-52 md:h-64">
+                        <img
+                            src={profileCoverImage}
+                            alt="Cover"
+                            className="w-full h-full object-cover object-center"
+                        />
+                        <div className="absolute inset-0 bg-black/40" />
+                        {/* Back */}
+                        <button
+                            onClick={() => navigate("/")}
+                            className="absolute top-5 left-5 flex items-center gap-1.5 text-white text-sm font-semibold py-1.5 px-3 rounded-md bg-white/10 border border-white/25 hover:bg-white/20 transition"
+                            style={{ fontFamily: "Inter, sans-serif" }}
+                        >
+                            <FaArrowLeft size={11} /> Home
                         </button>
-                      </div>
-                      {isOpen && (
-                        <div className="absolute z-10 right-0 lg:left-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg">
-                          <div className="py-1 form-text ">
-                            <Link to={'/create-post'} className="flex items-center cursor-pointer px-4 py-2 text-gray-800 hover:bg-gray-100">
-                              <IoCreate className='text-xl mr-2' />
-                              Create Post
-                            </Link>
-                            <Link to={'/edit-profile'} className="flex items-center cursor-pointer px-4 py-2 text-gray-800 hover:bg-gray-100">
-                              <FaUserEdit className='text-xl mr-2' />
-                              Edit Profile
-                            </Link>
-                            <span className="flex items-center cursor-pointer px-4 py-2 text-gray-800 hover:bg-gray-100">
-                              <RiLockPasswordFill className='text-lg ml-[-2px] mr-3' />
-                              Change Password
-                            </span>
-                            <span onClick={handleLogout} className="flex items-center cursor-pointer px-4 py-2 text-gray-800 hover:bg-gray-100">
-                              <IoLogOut className='text-xl mr-2' />
-                              Logout
-                            </span>
-                          </div>
+                    </div>
+
+                    {/* Profile card */}
+                    <div className="max-w-4xl mx-auto px-6">
+                        <div className="bg-white rounded-xl border border-slate-200 -mt-12 relative z-10 p-6 md:p-8">
+                            <div className="flex flex-col md:flex-row md:items-start gap-5">
+                                {/* Avatar */}
+                                <div className="flex-shrink-0">
+                                    {user.profile_pic ? (
+                                        <img
+                                            src={user.profile_pic}
+                                            alt={user.name}
+                                            className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
+                                        />
+                                    ) : (
+                                        <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center border-4 border-white shadow-md">
+                                            <span
+                                                className="text-white text-2xl font-black"
+                                                style={{
+                                                    fontFamily:
+                                                        "Inter, sans-serif",
+                                                }}
+                                            >
+                                                {initials}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Info */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <h1
+                                                className="text-2xl font-extrabold text-slate-900 leading-tight"
+                                                style={{
+                                                    fontFamily:
+                                                        "Inter, sans-serif",
+                                                    letterSpacing: "-0.5px",
+                                                }}
+                                            >
+                                                {user.name}
+                                            </h1>
+                                            {user.user_title && (
+                                                <p
+                                                    className="text-slate-500 text-sm mt-0.5"
+                                                    style={{
+                                                        fontFamily:
+                                                            "Inter, sans-serif",
+                                                    }}
+                                                >
+                                                    {user.user_title}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Actions menu */}
+                                        <div className="relative flex-shrink-0">
+                                            <button
+                                                onClick={() =>
+                                                    setMenuOpen(!menuOpen)
+                                                }
+                                                className="flex items-center gap-2 text-sm font-semibold text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 rounded-lg transition"
+                                                style={{
+                                                    fontFamily:
+                                                        "Inter, sans-serif",
+                                                }}
+                                            >
+                                                <FaPencilAlt size={11} />{" "}
+                                                Settings
+                                            </button>
+                                            {menuOpen && (
+                                                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50">
+                                                    <div className="py-1.5 px-1">
+                                                        <Link
+                                                            to="/create-post"
+                                                            onClick={() =>
+                                                                setMenuOpen(
+                                                                    false,
+                                                                )
+                                                            }
+                                                            className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition"
+                                                            style={{
+                                                                textDecoration:
+                                                                    "none",
+                                                                fontFamily:
+                                                                    "Inter, sans-serif",
+                                                            }}
+                                                        >
+                                                            <IoCreate className="text-base text-slate-400" />{" "}
+                                                            Create Post
+                                                        </Link>
+                                                        <Link
+                                                            to="/edit-profile"
+                                                            onClick={() =>
+                                                                setMenuOpen(
+                                                                    false,
+                                                                )
+                                                            }
+                                                            className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition"
+                                                            style={{
+                                                                textDecoration:
+                                                                    "none",
+                                                                fontFamily:
+                                                                    "Inter, sans-serif",
+                                                            }}
+                                                        >
+                                                            <FaUserEdit className="text-base text-slate-400" />{" "}
+                                                            Edit Profile
+                                                        </Link>
+                                                        <span
+                                                            className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg cursor-pointer transition"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "Inter, sans-serif",
+                                                            }}
+                                                        >
+                                                            <RiLockPasswordFill className="text-base text-slate-400" />{" "}
+                                                            Change Password
+                                                        </span>
+                                                        <hr className="my-1 border-slate-100" />
+                                                        <span
+                                                            onClick={
+                                                                handleLogout
+                                                            }
+                                                            className="flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg cursor-pointer transition"
+                                                            style={{
+                                                                fontFamily:
+                                                                    "Inter, sans-serif",
+                                                            }}
+                                                        >
+                                                            <IoLogOut className="text-base" />{" "}
+                                                            Logout
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Bio */}
+                                    {user.bio && (
+                                        <div
+                                            className="mt-3 text-sm text-slate-600 leading-relaxed max-w-lg"
+                                            style={{
+                                                fontFamily: "Inter, sans-serif",
+                                            }}
+                                            dangerouslySetInnerHTML={{
+                                                __html: user.bio,
+                                            }}
+                                        />
+                                    )}
+
+                                    {/* Meta: location, joined */}
+                                    <div
+                                        className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-400"
+                                        style={{
+                                            fontFamily: "Inter, sans-serif",
+                                        }}
+                                    >
+                                        {user.location && (
+                                            <span className="flex items-center gap-1.5">
+                                                <FaLocationDot size={12} />{" "}
+                                                {user.location}
+                                            </span>
+                                        )}
+                                        <span className="flex items-center gap-1.5">
+                                            <MdDateRange size={13} /> Joined{" "}
+                                            {joinedDate(user.createdAt)}
+                                        </span>
+                                    </div>
+
+                                    {/* Skills */}
+                                    {user.skills?.filter((s) => s).length >
+                                        0 && (
+                                        <div className="mt-4 flex flex-wrap gap-1.5">
+                                            {user.skills.map((skill, i) =>
+                                                skill ? (
+                                                    <span
+                                                        key={i}
+                                                        className={`${getColorClass(i)} text-white text-xs font-semibold py-0.5 px-2.5 rounded-full`}
+                                                        style={{
+                                                            fontFamily:
+                                                                "Inter, sans-serif",
+                                                        }}
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ) : null,
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                      )}
+
+                        {/* User's posts section */}
+                        {userBlogs.length > 0 && (
+                            <div className="mt-8 mb-2">
+                                <h2
+                                    className="text-lg font-bold text-slate-900 flex items-center gap-2"
+                                    style={{
+                                        fontFamily: "Inter, sans-serif",
+                                        letterSpacing: "-0.3px",
+                                    }}
+                                >
+                                    <span className="inline-block w-1 h-5 bg-slate-900 rounded" />
+                                    Published Posts ({userBlogs.length})
+                                </h2>
+                            </div>
+                        )}
                     </div>
-                  </div>
-                  <p className="text-lg form-text text-gray-600">{(user.user_title)}</p>
-                  {/* Additional user details */}
 
+                    {/* Blog cards */}
+                    <Cards
+                        cardsData={userBlogs}
+                        totalCards={userBlogs.length || 4}
+                        isLoading={userBlogs.length === 0}
+                        deleteBlogData={handleDeleteBlog}
+                        isProfile
+                    />
                 </div>
-              </div>
-              {/* User bio */}
-              <div className="mt-3 text-gray-700 ml-2 md:ml-8 lg:ml-14 md:mr-2 max-w-md">
-                <p className="text-base form-text" dangerouslySetInnerHTML={{ __html: user.bio }} />
-              </div>
-              <div className="ml-2 lg:ml-14 md:ml-8 mt-2 lg:mt-4 md:mt-4">
-                <div className="text-sm form-text text-gray-600 mt-4 flex gap-2">
-                  {(user.location) ?
-                    <div className='flex gap-1'>
-                      <FaLocationDot className='mt-1' />
-                      <p>{user.location}</p>
-                    </div>
-                    : ''}
-                  <div className='flex gap-1'>
-                    <MdDateRange className='mt-1' />
-                    <p>Joined {joinedDate(user.createdAt)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Section - Skills */}
-            <div>
-
-            </div>
-            {(user.skills) ? (
-              <div className="md:w-1/2 mt-8 lg:mt-0 md:mt-8 md:mr-12 ml-2 lg:ml-0 ">
-                <h2 className="text-2xl form-text font-bold mb-4">{((!user.skills[0]) ? '' : 'Skills')}</h2>
-                <div className="flex flex-wrap text-md form-text gap-1">
-                  {user.skills.map((skill, i) => (
-                    <span className={`${getColorClass(i)} text-white py-1 px-3 rounded-sm `} key={i}>{skill}</span>
-                  ))}
-                </div>
-              </div>
-            ) : ''}
-          </div>
-
-        </div>
-
-      }
-
-      <Cards cardsData={userBlogs} totalCards={userBlogs.length || 4} isLoading={(userBlogs.length === 0) ? true : false} deleteBlogData={handleDeleteBlog} isProfile />
-
-    </>
-  )
+            )}
+        </>
+    );
 }
 
-export default UserProfile
+export default UserProfile;

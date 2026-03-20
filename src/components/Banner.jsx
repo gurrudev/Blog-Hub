@@ -9,7 +9,6 @@ import endpointForUser from "../utils/endpointForUser";
 function Banner() {
 
     const navigate = useNavigate()
-
     const [user, setUser] = useState({})
 
     const token = sessionStorage.getItem('token')
@@ -19,40 +18,62 @@ function Banner() {
             const userData = await endpointForUser(token);
             setUser(userData)
         } catch (error) {
-            // Handle errors
             console.error(error);
         }
     };
 
-    // console.log(user)
+    useEffect(() => { getUserData() }, [])
 
-    const handleClick = () => {
-        if(user.message === 'Invalid token' || user === null){
-            navigate('/login')
-        }else{
-            navigate('/create-post')
-        }
+    const isLoggedIn = user && user.message !== 'Invalid token'
+
+    const handlePrimary = () => navigate(isLoggedIn ? '/create-post' : '/login')
+    const handleSecondary = () => {
+        document.getElementById('blog-cards')?.scrollIntoView({ behavior: 'smooth' })
     }
-
-    useEffect(() => {
-        getUserData()
-    }, [])
 
     return (
         <div className="banner">
             <Navbar />
+
             <div className="banner-text">
-                <h1 className='text-center leading-10'>Experience the beauty of diverse perspectives</h1>
-                <h3 className='text-white'>Write Your thoughts</h3>
-                <button className='banner-btn bg-white text-slate-800 rounded-sm pt-2 pb-2 pl-4 pr-4 hover:bg-slate-100 mt-5 text-base form-text' onClick={handleClick}>{(user.message === 'Invalid token' || user === null) ? 'Get Started' : 'Create Post'}</button>
+                <p className="banner-category">
+                    <span /> Discover · Read · Write <span />
+                </p>
+                <h1>
+                    Experience the beauty<br />of <em>diverse perspectives</em>
+                </h1>
+                <h3>Explore stories, ideas and expertise from writers on any topic.</h3>
+
+                <div className="banner-btn-row">
+                    <button className="banner-btn" onClick={handlePrimary}>
+                        {isLoggedIn ? 'Create a Post' : 'Start Reading'}
+                    </button>
+                    <button className="banner-btn-ghost" onClick={handleSecondary}>
+                        Browse Articles ↓
+                    </button>
+                </div>
             </div>
-            <div className="overlay"></div>
+
+            <div className="overlay" />
             <div className="custom-clip-path">
-                {/* Adjust the image URL accordingly */}
-                <img src={banner_img} alt="" />
+                <img src={banner_img} alt="Hero background" />
+            </div>
+
+            <div className="banner-stats">
+                <div className="banner-stat">
+                    <span className="banner-stat-num">500+</span>
+                    <span className="banner-stat-label">Articles</span>
+                </div>
+                <div className="banner-stat">
+                    <span className="banner-stat-num">120+</span>
+                    <span className="banner-stat-label">Authors</span>
+                </div>
+                <div className="banner-stat">
+                    <span className="banner-stat-num">10K+</span>
+                    <span className="banner-stat-label">Readers</span>
+                </div>
             </div>
         </div>
-
     )
 }
 

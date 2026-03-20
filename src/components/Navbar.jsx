@@ -1,51 +1,55 @@
-import React, { useState } from "react";
-import './Navbar.css'
-import { FaUserAlt } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import "./Navbar.css";
+import { FaUserAlt, FaPencilAlt } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import endpointForUser from "../utils/endpointForUser";
 
 function Navbar() {
+    const [user, setUser] = useState({});
+    const [scrolled, setScrolled] = useState(false);
 
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+    const token = sessionStorage.getItem("token");
 
-  const [user, setUser] = useState({})
- 
+    const getUserData = async () => {
+        try {
+            const userData = await endpointForUser(token);
+            setUser(userData);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
-  const token = sessionStorage.getItem('token')
+    useEffect(() => {
+        getUserData();
+        const onScroll = () => setScrolled(window.scrollY > 60);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
-  const getUserData = async () => {
-    try {
-      const userData = await endpointForUser(token);
-      setUser(userData)
-    } catch (error) {
-      // Handle errors
-      console.error(error);
-    }
-  };
+    const isLoggedIn = user && user.message !== "Invalid token";
 
-  useEffect(()=>{
-    getUserData()
-  },[])
+    return (
+        <header className={`navbar-glass${scrolled ? " scrolled" : ""}`}>
+            <Link to="/" className="navbar-logo">
+                Blogiefy
+            </Link>
 
-  return (
-    <>
-      <header className="p-10 sm:p-20  sm:pt-10">
-        <div className="logo mt-6 text-white">
-          <h1 className="text-2xl sm:text-3xl">BlogHub</h1>
-        </div>
-        <Link to={
-            (user.message === 'Invalid token' || user === null) ? '/login' : 
-            '/profile'
-          }
-        >
-          <FaUserAlt className="user-icon mt-6 text-1xl sm:text-2xl" />
-        </Link>
-      </header>
-    </>
-  )
+            <div className="navbar-actions">
+                {isLoggedIn && (
+                    <Link to="/create-post" className="navbar-write-btn">
+                        <FaPencilAlt size={10} />
+                        Write
+                    </Link>
+                )}
+                <Link
+                    to={isLoggedIn ? "/profile" : "/login"}
+                    className="navbar-avatar"
+                >
+                    <FaUserAlt size={13} />
+                </Link>
+            </div>
+        </header>
+    );
 }
 
 export default Navbar;

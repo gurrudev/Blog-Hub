@@ -1,5 +1,7 @@
 import axios from "axios"
 
+
+
 export const getBlogsData = async() =>{
     try {
         let get_blogs = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/blogs`)
@@ -19,12 +21,9 @@ export const getUsersData = async () =>{
 }
 
 export const loginUser = async(params) =>{
-
     try {
         let login = await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/users/login`,params)
-      
         return login
-   
     } catch (err) {
         console.log(err)
     }

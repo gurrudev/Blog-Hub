@@ -1,78 +1,172 @@
 .card-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 25px;
-  padding: 3rem 5rem;
-  z-index: 1;
+  gap: 24px;
+  padding: 3.5rem 4rem;
 }
 
 .card {
   width: 100%;
-  flex-wrap: wrap;
   display: flex;
   flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e8edf3;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
 }
 
-.card a {
-  font-family: europaBold;
-  margin-top: 10px;
-  font-weight: bolder;
-  text-decoration: unset;
-  color: inherit;
-  font-size: 17px;
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.09);
 }
 
-.underline {
-  width: 80px;
-  height: 2px;
-  color: #000;
-  background-color: #000;
+.card-img-wrap {
+  position: relative;
+  overflow: hidden;
 }
 
-.card img {
+.card-img-wrap img {
   width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.45s ease;
+}
+
+.card:hover .card-img-wrap img {
+  transform: scale(1.04);
+}
+
+.card-img-gradient {
+  display: none;
+}
+
+.card-body {
+  padding: 1rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.45rem;
+}
+
+/* Tags — now inside body, not over image */
+.card-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  position: static;
+}
+
+.card-tag {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
 }
 
 .card h2 {
-  font-family: europaBold;
-  margin-top: 15px;
-  font-size: 18px;
+  font-family: 'Inter', europaBold, sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.38;
+  color: #0f172a;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .user-details {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
-.recent-text{
-  font-family: europaBold;
+.card-author {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.card-author-initials {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-author-name {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.card-date {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
 }
 
 .des {
-  font-family: customeRegular;
-  margin-top: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
 }
 
-.date {
-  font-family: customeItalic;
-  margin-top: 10px;
+.card-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a !important;
+  text-decoration: none !important;
+  margin-top: auto;
+  padding-top: 0.4rem;
+  border-bottom: 1.5px solid #0f172a;
+  width: fit-content;
+  transition: opacity 0.18s;
+}
+.card-read-more:hover { opacity: 0.6; }
+
+.underline {
+  width: 80px;
+  height: 2px;
+  background-color: #000;
 }
 
 @media (max-width: 1470px) {
-  .card-container {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .card-container { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 990px) {
-  .card-container {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 3rem 2rem;
-  }
+  .card-container { grid-template-columns: repeat(2, 1fr); padding: 2.5rem 2rem; }
 }
-@media (max-width: 690px) {
-  .card-container {
-    grid-template-columns: repeat(1, 1fr);
-    padding: 3rem 2rem;
-  }
+
+@media (max-width: 640px) {
+  .card-container { grid-template-columns: repeat(1, 1fr); padding: 2rem 1.25rem; }
 }

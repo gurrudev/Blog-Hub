@@ -1,7 +1,7 @@
-# BlogHub
+# Blogiefy
 
-Welcome to BlogHub, your go-to platform for unleashing your creativity through the art of blogging. Whether you're an experienced writer, a passionate storyteller, or someone with a unique perspective to share, BlogHub provides you with the perfect space to craft, publish, and showcase your thoughts to the world.
-   
+Welcome to Blogiefy, your go-to platform for unleashing your creativity through the art of blogging. Whether you're an experienced writer, a passionate storyteller, or someone with a unique perspective to share, Blogiefy provides you with the perfect space to craft, publish, and showcase your thoughts to the world.
+
 <br />
 
 <h2 align="">🖥️ Tech Stacks</h2>
@@ -33,26 +33,20 @@ Welcome to BlogHub, your go-to platform for unleashing your creativity through t
 
 <h4 align="">Screenshot:</h4>
 
-![1](https://github.com/gurrudev/Blog-Hub/assets/80522156/dd4e8b63-16f8-4b97-9b4f-a17595961017) | ![2](https://github.com/gurrudev/Blog-Hub/assets/80522156/22eb1ee6-5c95-41b4-b587-5b5cde9e7cbd) |
-| :---: | :---: |
+| ![1](https://github.com/gurrudev/Blog-Hub/assets/80522156/dd4e8b63-16f8-4b97-9b4f-a17595961017) | ![2](https://github.com/gurrudev/Blog-Hub/assets/80522156/22eb1ee6-5c95-41b4-b587-5b5cde9e7cbd) |
+| :---------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------: |
 
-
-
-<h3 align=""><a href="https://bloghubsite.netlify.app/"><strong>Want to see live preview »</strong></a></h3>
-
+<h3 align=""><a href="https://blogiefysite.netlify.app/"><strong>Want to see live preview »</strong></a></h3>
 
 <br />
 
-
 <br />
-
 
 ## Contact
 
 If you want to contact me, you can reach me through below handles. <br /><br />
 [![linkedin](https://img.shields.io/badge/Ashutosh_Pawar-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gurrudev/)
 [![GitHub](https://img.shields.io/badge/gurrudev-27374D?style=for-the-badge&logo=Github&logoColor=white)](https://github.com/gurrudev)
-
 
 ## Show your support
 

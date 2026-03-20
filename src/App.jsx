@@ -9,6 +9,7 @@ import UserProfile from './pages/UserProfile'
 import NotFound404 from './pages/NotFound404'
 import { WriteBlog } from './pages/WriteBlog'
 import EditProfile from './pages/EditProfile'
+import EditBlog from './pages/EditBlog'
 
 function App() {
 
@@ -18,7 +19,7 @@ function App() {
         <Routes>
           <Route path='/login' element={<Login/>} />
           <Route path='/signup' element={<Signup/>}/>
-          <Route path="/" 
+          <Route path="/"
             element={
               <>
                 <Home/>
@@ -26,11 +27,12 @@ function App() {
               </>
             }
           />
-          
+
           <Route path='/post/:id' element={<BlogPost/>}/>
           <Route path='/profile' element={<UserProfile/>}/>
           <Route path='/create-post' element={<WriteBlog/>}/>
           <Route path='/edit-profile' element={<EditProfile/>}/>
+          <Route path='/edit-post/:id' element={<EditBlog/>}/>
           <Route path="*" element={<NotFound404 />} />
         </Routes>
       </Router>
